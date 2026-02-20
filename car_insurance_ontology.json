@@ -1,0 +1,118 @@
+{
+  "ontology": {
+    "name": "Finnish Car Insurance Ontology",
+    "version": "1.0",
+    "based_on": "Liikennevakuutuslaki (Traffic Insurance Act)",
+    "language": "en",
+    "entities": {
+      "Vehicle": {
+        "description": "Motor vehicle subject to insurance requirements",
+        "attributes": ["vehicleId", "registrationNumber", "vehicleType", "firstRegistrationDate", "owner"],
+        "subclasses": {
+          "MotorVehicle": {
+            "subclasses": ["PassengerCar", "Motorcycle", "Truck", "Bus"]
+          },
+          "Trailer": {},
+          "AgriculturalVehicle": {}
+        }
+      },
+      "Insurance": {
+        "description": "Insurance contract",
+        "attributes": ["policyNumber", "insuranceCompany", "policyHolder", "startDate", "endDate", "premium", "deductible", "coverage"],
+        "subclasses": {
+          "MandatoryTrafficInsurance": {
+            "description": "Statutory motor liability insurance (Liikennevakuutus)",
+            "legal_basis": "Mandatory by law"
+          },
+          "ComprehensiveInsurance": {
+            "description": "Voluntary full coverage (Kaskovakuutus)",
+            "subclasses": ["FullComprehensive", "PartialComprehensive", "FireAndTheft"]
+          }
+        }
+      },
+      "Person": {
+        "description": "Natural person involved in insurance",
+        "attributes": ["personalId", "firstName", "lastName", "address", "drivingLicense"],
+        "subclasses": ["PolicyHolder", "Insured", "Driver", "InjuredParty", "DamagedParty"]
+      },
+      "LegalEntity": {
+        "description": "Corporations and organizations",
+        "attributes": ["businessId", "name", "address"],
+        "subclasses": ["InsuranceCompany", "PolicyHoldingCompany", "RepairShop"]
+      },
+      "InsuranceEvent": {
+        "description": "Event triggering insurance coverage",
+        "attributes": ["eventId", "eventDate", "location", "description", "involvedVehicles", "involvedPersons"],
+        "subclasses": {
+          "TrafficAccident": {},
+          "FireIncident": {},
+          "TheftEvent": {},
+          "NaturalDamage": {}
+        }
+      },
+      "Damage": {
+        "description": "Damage from insurance event",
+        "attributes": ["damageId", "damageType", "severity", "estimatedCost", "repairCost", "medicalCost"],
+        "subclasses": {
+          "PropertyDamage": {
+            "subclasses": ["VehicleDamage", "ThirdPartyPropertyDamage"]
+          },
+          "PersonalInjury": {
+            "subclasses": ["PhysicalInjury", "Death"]
+          }
+        }
+      },
+      "Claim": {
+        "description": "Formal request for compensation",
+        "attributes": ["claimId", "claimDate", "claimant", "insurancePolicy", "insuranceEvent", "damage", "status", "processedDate", "decisionDate"],
+        "status_values": ["submitted", "under_review", "additional_info_required", "approved", "rejected", "partially_approved", "paid"]
+      },
+      "Compensation": {
+        "description": "Payment or benefit from insurance",
+        "attributes": ["compensationId", "claimId", "amount", "currency", "paymentDate", "recipient"],
+        "subclasses": ["PropertyDamageCompensation", "MedicalExpenseCompensation", "DisabilityCompensation", "DeathCompensation", "PainAndSuffering", "LostWagesCompensation"]
+      }
+    },
+    "relationships": [
+      {"from": "Person", "to": "Vehicle", "type": "owns"},
+      {"from": "InsuranceCompany", "to": "Insurance", "type": "provides"},
+      {"from": "PolicyHolder", "to": "Insurance", "type": "holds"},
+      {"from": "Insurance", "to": "Vehicle", "type": "covers"},
+      {"from": "InsuranceEvent", "to": "Damage", "type": "results_in"},
+      {"from": "Claim", "to": "InsuranceEvent", "type": "filed_for"},
+      {"from": "Compensation", "to": "Person", "type": "paid_to"},
+      {"from": "InsuranceCompany", "to": "Compensation", "type": "pays"}
+    ],
+    "rules": [
+      {
+        "name": "MandatoryInsuranceRequirement",
+        "condition": "vehicle.registrationRequired = true",
+        "conclusion": "vehicle.mustHaveInsurance = MandatoryTrafficInsurance"
+      },
+      {
+        "name": "TotalLossCompensation",
+        "condition": "damage.type = PropertyDamage AND damage.severity = TotalLoss",
+        "conclusion": "compensation.maximum = Vehicle.marketValue"
+      },
+      {
+        "name": "YoungDriverDeductible",
+        "condition": "driver.age < 25 AND insurance.type = Comprehensive",
+        "conclusion": "insurance.deductible = standardDeductible * 1.5"
+      },
+      {
+        "name": "ClaimReminder",
+        "condition": "claim.status = under_review AND daysSinceClaim > 30",
+        "conclusion": "claim.reminder = true"
+      }
+    ],
+    "regulatory_bodies": [
+      "Finanssivalvonta (FIVA) - Financial Supervisory Authority",
+      "Liikennevakuutuskeskus - Finnish Motor Insurance Centre"
+    ],
+    "key_legislation": [
+      "Liikennevakuutuslaki 279/2011 - Traffic Insurance Act",
+      "Vakuutussopimuslaki - Insurance Contract Act",
+      "Laki liikennevakuutuksen korvausasian käsittelystä - Claims Processing Act"
+    ]
+  }
+}
