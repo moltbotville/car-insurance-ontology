@@ -1,0 +1,504 @@
+{
+  "metadata": {
+    "law_name": "Liikennevakuutuslaki (Traffic Insurance Act)",
+    "law_number": "460/2016",
+    "source": "https://www.finlex.fi/fi/lainsaadanto/2016/460",
+    "current_as_of": "16.1.2026/47",
+    "disclaimer": "These rules are derived from official Finnish law. Some amounts may be adjusted by government decree.",
+    "generated": "2026-02-20"
+  },
+  "business_rules": [
+    {
+      "category": "MANDATORY_INSURANCE",
+      "rule_id": "INS-001",
+      "name": "MandatoryTrafficInsuranceRequired",
+      "description": "All vehicles with permanent location in Finland must have mandatory traffic insurance",
+      "condition": "vehicle.permanentLocation = 'FI' AND vehicle.requiresInsurance = true",
+      "action": "REQUIRE insurance.type = 'TrafficInsurance'",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 5 §"
+    },
+    {
+      "category": "MANDATORY_INSURANCE",
+      "rule_id": "INS-002",
+      "name": "OwnerAndHolderJointlyLiable",
+      "description": "Vehicle owner and holder are jointly responsible for insurance",
+      "condition": "vehicle.owner AND vehicle.holder",
+      "action": "BOTH liable for insurance obligation",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 6 §"
+    },
+    {
+      "category": "MANDATORY_INSURANCE",
+      "rule_id": "INS-003",
+      "name": "InsuranceObligationStartsAtOwnership",
+      "description": "Insurance obligation begins from the day of ownership or possession transfer",
+      "condition": "vehicle.ownershipTransferred = true",
+      "action": "insurance.mustBeTaken WITHIN 0 days",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 6 §"
+    },
+    {
+      "category": "MANDATORY_INSURANCE",
+      "rule_id": "INS-004",
+      "name": "EEAVehicleInsuranceChoice",
+      "description": "When importing from another EEA country, buyer can choose where to insure",
+      "condition": "vehicle.importedFromEEA = true",
+      "action": "vehicle.insuranceCountry = CHOICE(vehicle.registrationCountry, 'FI')",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 6a §"
+    },
+    {
+      "category": "MANDATORY_INSURANCE",
+      "rule_id": "INS-005",
+      "name": "BorderTrafficInsuranceRequired",
+      "description": "Vehicles from third countries require border traffic insurance for temporary use in Finland",
+      "condition": "vehicle.permanentLocation = 'ThirdCountry' AND vehicle.temporaryUseInFinland = true",
+      "action": "REQUIRE insurance.type = 'BorderTrafficInsurance'",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 7 §"
+    },
+    {
+      "category": "MANDATORY_INSURANCE",
+      "rule_id": "INS-006",
+      "name": "InsuranceExceptions",
+      "description": "Certain vehicles are exempt from mandatory insurance",
+      "condition": "vehicle.type IN ['AgriculturalMachine', 'Trailer', 'Wheelchair', 'GovernmentVehicle']",
+      "action": "insurance.optional = true",
+      "severity": "MEDIUM",
+      "legal_reference": "460/2016 8 §"
+    },
+    {
+      "category": "PREMIUM",
+      "rule_id": "PRE-001",
+      "name": "PremiumMustBeReasonable",
+      "description": "Premiums must be in reasonable proportion to expected costs",
+      "condition": "true",
+      "action": "premium.mustBeProportionalToExpectedCosts",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 20 §"
+    },
+    {
+      "category": "PREMIUM",
+      "rule_id": "PRE-002",
+      "name": "ClaimsHistoryAffectsPremium",
+      "description": "Premium calculation must include claims history for cars, vans, motorcycles, buses, trucks",
+      "condition": "vehicle.type IN ['Car', 'Van', 'RV', 'Bus', 'Truck', 'Motorcycle']",
+      "action": "premium.adjustByClaimsHistory",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 20 §"
+    },
+    {
+      "category": "PREMIUM",
+      "rule_id": "PRE-003",
+      "name": "PremiumRefundOnTermination",
+      "description": "If insurance ends early, premium refund for unused period",
+      "condition": "insurance.terminatedEarly = true",
+      "action": "refund premium for unused coverage period",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 23 §",
+      "notes": "Minimum refund threshold: €8 (adjustable by decree)"
+    },
+    {
+      "category": "PREMIUM",
+      "rule_id": "PRE-004",
+      "name": "IncreasedPremiumForUnreportedUse",
+      "description": "If vehicle used in traffic while registered as temporarily removed, premium up to 3x",
+      "condition": "vehicle.registeredAsRemovedFromTraffic AND vehicle.usedInTraffic = true",
+      "action": "premium.multiplier = UP_TO 3.0",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 22 §"
+    },
+    {
+      "category": "PREMIUM",
+      "rule_id": "PRE-005",
+      "name": "DefaultInterestOnUnpaidPremium",
+      "description": "Interest on unpaid premium according to Interest Act",
+      "condition": "premium.unpaid = true",
+      "action": "charge interest at Interest Act rate",
+      "severity": "MEDIUM",
+      "legal_reference": "460/2016 24 §"
+    },
+    {
+      "category": "PREMIUM",
+      "rule_id": "PRE-006",
+      "name": "PremiumDistrainable",
+      "description": "Premium with interest is directly distrainable",
+      "condition": "premium.unpaid AND premium.withInterest",
+      "action": "distrainable = true",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 25 §"
+    },
+    {
+      "category": "PREMIUM",
+      "rule_id": "PRE-007",
+      "name": "PremiumEquivalentPayment",
+      "description": "Uninsured vehicle owner must pay premium-equivalent for uncovered period",
+      "condition": "vehicle.insured = false AND vehicle.requiredInsurance = true",
+      "action": "pay premiumEquivalent for period without insurance",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 27 §",
+      "notes": "Maximum 5 years back + current year"
+    },
+    {
+      "category": "PREMIUM",
+      "rule_id": "PRE-008",
+      "name": "PenaltyFeeForNoInsurance",
+      "description": "Penalty fee up to 3x premium for failure to insure",
+      "condition": "insurance.obligationBreached = true",
+      "action": "penaltyFee = UP_TO premiumEquivalent * 3",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 28 §"
+    },
+    {
+      "category": "COVERAGE",
+      "rule_id": "COV-001",
+      "name": "NoFaultCompensation",
+      "description": "Traffic accidents compensated regardless of tort liability",
+      "condition": "event.type = 'TrafficAccident'",
+      "action": "compensate = true",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 31 §"
+    },
+    {
+      "category": "COVERAGE",
+      "rule_id": "COV-002",
+      "name": "EEACoverage",
+      "description": "Single premium covers all EEA countries",
+      "condition": "premium.paid = true",
+      "action": "coverage.validInAllEEA = true",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 13 §"
+    },
+    {
+      "category": "COVERAGE",
+      "rule_id": "COV-003",
+      "name": "PropertyDamageCompensation",
+      "description": "Property damage compensated according to Tort Liability Act chapter 5 §5",
+      "condition": "event.type = 'PropertyDamage'",
+      "action": "compensate = repairCost OR fairMarketValue",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 37 §"
+    },
+    {
+      "category": "COVERAGE",
+      "rule_id": "COV-004",
+      "name": "PropertyDamageMaximum",
+      "description": "Maximum property damage compensation €5,000,000 per insurance",
+      "condition": "event.type = 'PropertyDamage'",
+      "action": "maxCompensation = 5000000 EUR",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 38 §"
+    },
+    {
+      "category": "COVERAGE",
+      "rule_id": "COV-005",
+      "name": "PersonalInjuryCompensation",
+      "description": "Personal injury compensated according to Tort Liability Act chapters 5 and 7",
+      "condition": "event.type = 'PersonalInjury'",
+      "action": "compensate according to TortLiabilityAct",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 34 §"
+    },
+    {
+      "category": "COVERAGE",
+      "rule_id": "COV-006",
+      "name": "IndexAdjustment",
+      "description": "Continuous compensations adjusted annually by employee pension index",
+      "condition": "compensation.type = 'Continuous'",
+      "action": "adjustByIndex ANNUALLY",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 35 §"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-001",
+      "name": "SelfCausedAccidentReduction",
+      "description": "If victim caused accident through gross negligence, compensation may be reduced or denied",
+      "condition": "victim.grossNegligence = true",
+      "action": "compensate REDUCE OR DENY",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 47 §"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-002",
+      "name": "AlcoholReduction",
+      "description": "If driver has BAC ≥1.2‰ or impaired ability, compensation reduced based on contribution",
+      "condition": "driver.BAC >= 1.2 OR driver.impaired = true",
+      "action": "reduce compensation BY driverContribution",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 48 §"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-003",
+      "name": "AlcoholReductionLower",
+      "description": "If driver BAC 0.5-1.19‰, compensation reduced proportionally",
+      "condition": "driver.BAC >= 0.5 AND driver.BAC < 1.2",
+      "action": "reduce compensation proportionally",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 48 §"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-004",
+      "name": "IllegalUserCompensation",
+      "description": "Person in illegally taken vehicle compensated only for special reason if knew vehicle was illegal",
+      "condition": "person.inIllegalVehicle AND person.knewIllegal = true",
+      "action": "compensate ONLY for specialReason",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 49 §"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-005",
+      "name": "OwnVehicleExcluded",
+      "description": "Damage to the insured vehicle itself not covered",
+      "condition": "damage.target = insuredVehicle",
+      "action": "compensate = false",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 40 §"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-006",
+      "name": "WorkExclusion",
+      "description": "Damage during loading/unloading to persons or property involved in work excluded",
+      "condition": "event.occurredDuring = 'LoadingOrUnloading' AND damage.target = 'WorkParticipant'",
+      "action": "compensate = false",
+      "severity": "MEDIUM",
+      "legal_reference": "460/2016 42 §"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-007",
+      "name": "InsanityException",
+      "description": "No reduction/refusal if victim under 12, insane, or acting in emergency",
+      "condition": "victim.age < 12 OR victim.insane OR victim.emergency = true",
+      "action": "compensate FULL",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 50 §"
+    },
+    {
+      "category": "CLAIMS",
+      "rule_id": "CLM-001",
+      "name": "DirectClaimRight",
+      "description": "Victim can claim directly from insurance company",
+      "condition": "victim.claiming = true",
+      "action": "claim可直接向保险公司提出",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 60 §"
+    },
+    {
+      "category": "CLAIMS",
+      "rule_id": "CLM-002",
+      "name": "ClaimsTimeLimit",
+      "description": "Claim must be filed within 3 years of knowing about accident, max 10 years",
+      "condition": "claim.filed = true",
+      "action": "deadline = 3 years (knowledge) OR 10 years (max)",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 61 §"
+    },
+    {
+      "category": "CLAIMS",
+      "rule_id": "CLM-003",
+      "name": "InvestigationStartDeadline",
+      "description": "Insurance company must start investigation within 7 business days",
+      "condition": "claim.received = true",
+      "action": "investigation.start WITHIN 7 business days",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 62 §"
+    },
+    {
+      "category": "CLAIMS",
+      "rule_id": "CLM-004",
+      "name": "CompensationDeadline",
+      "description": "Compensation must be paid within 1 month of receiving required documents",
+      "condition": "documents.complete = true",
+      "action": "pay within 1 month",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 62 §"
+    },
+    {
+      "category": "CLAIMS",
+      "rule_id": "CLM-005",
+      "name": "DelayInterest",
+      "description": "Delayed compensation interest at Interest Act rate + increase",
+      "condition": "compensation.paidLate = true",
+      "action": "pay delayInterestAtRate PLUS increase",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 67 §"
+    },
+    {
+      "category": "CLAIMS",
+      "rule_id": "CLM-006",
+      "name": "BoardRecommendationRequired",
+      "description": "Must request Traffic and Patient Injury Board recommendation for certain complex cases",
+      "condition": "claim.type IN ['PermanentLossOfEarnings', 'Death', 'SevereDisability', 'IncreasedCompensation']",
+      "action": "request boardRecommendation REQUIRED",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 66 §"
+    },
+    {
+      "category": "CLAIMS",
+      "rule_id": "CLM-007",
+      "name": "CourtClaimLimitation",
+      "description": "Court action must be filed within 3 years of decision",
+      "condition": "claim.disputed = true",
+      "action": "sue within 3 years of decision",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 79 §"
+    },
+    {
+      "category": "CENTRE",
+      "rule_id": "CEN-001",
+      "name": "CentreCoversUninsured",
+      "description": "Traffic Insurance Centre compensates damage caused by uninsured vehicle",
+      "condition": "vehicle.insured = false AND vehicle.shouldBeInsured = true",
+      "action": "centre.compensates",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 46 §"
+    },
+    {
+      "category": "CENTRE",
+      "rule_id": "CEN-002",
+      "name": "CentreCoversUnknownVehicle",
+      "description": "Centre compensates personal injury from unknown vehicle",
+      "condition": "vehicle.unknown = true AND event.type = 'PersonalInjury'",
+      "action": "centre.compensatesPersonalInjury",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 44 §"
+    },
+    {
+      "category": "CENTRE",
+      "rule_id": "CEN-003",
+      "name": "CentreCoversExemptVehicle",
+      "description": "Centre compensates damage from exempt vehicles (agricultural, etc.)",
+      "condition": "vehicle.exempt = true AND vehicle.permanentLocation = 'FI'",
+      "action": "centre.compensates",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 43 §"
+    },
+    {
+      "category": "INSURER_OBLIGATIONS",
+      "rule_id": "ICO-001",
+      "name": "CannotRefuseInsurance",
+      "description": "Insurance company cannot refuse to provide insurance for eligible vehicle",
+      "condition": "company.licensed = true AND vehicle.eligible = true",
+      "action": "MUST provide insurance",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 17 §"
+    },
+    {
+      "category": "INSURER_OBLIGATIONS",
+      "rule_id": "ICO-002",
+      "name": "MustIssueGreenCard",
+      "description": "Company must issue green card (international insurance certificate) on request",
+      "condition": "customer.requestedGreenCard = true",
+      "action": "issue greenCard",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 17 §"
+    },
+    {
+      "category": "INSURER_OBLIGATIONS",
+      "rule_id": "ICO-003",
+      "name": "ClaimsHistoryCertificate",
+      "description": "Must provide claims history certificate within 15 days of request",
+      "condition": "customer.requestedCertificate = true",
+      "action": "issue certificate WITHIN 15 days",
+      "severity": "MEDIUM",
+      "legal_reference": "460/2016 19 §"
+    },
+    {
+      "category": "INSURER_OBLIGATIONS",
+      "rule_id": "ICO-004",
+      "name": "DocumentRetention",
+      "description": "Must retain personal injury documents 100 years, other documents 10 years",
+      "condition": "true",
+      "action": "retain documents 100 years (injury), 10 years (other)",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 85 §"
+    },
+    {
+      "category": "VEHICLE_USAGE",
+      "rule_id": "VEH-001",
+      "name": "UsageProhibition",
+      "description": "Uninsured vehicle usage in traffic is prohibited",
+      "condition": "vehicle.insured = false AND vehicle.usedInTraffic = true",
+      "action": "usage = PROHIBITED",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 30 §"
+    },
+    {
+      "category": "VEHICLE_USAGE",
+      "rule_id": "VEH-002",
+      "name": "ContinuityAfterSale",
+      "description": "Insurance covers 7 days after ownership transfer if new owner doesn't insure",
+      "condition": "vehicle.sold = true AND newOwner.notInsured = true",
+      "action": "coverage extends 7 days",
+      "severity": "MEDIUM",
+      "legal_reference": "460/2016 18 §"
+    },
+    {
+      "category": "INTERNATIONAL",
+      "rule_id": "INT-001",
+      "name": "EEACitizenChoiceOfLaw",
+      "description": "Finnish resident victim can choose Finnish law for accident in another EEA country",
+      "condition": "victim.resident = 'FI' AND accident.country IN EEA AND accident.country != 'FI'",
+      "action": "victim.canChoose FinnishLaw",
+      "severity": "MEDIUM",
+      "legal_reference": "460/2016 13 §"
+    },
+    {
+      "category": "INTERNATIONAL",
+      "rule_id": "INT-002",
+      "name": "ForeignVehicleFinnishAccident",
+      "description": "Foreign vehicle accident in Finland - Finnish minimum coverage applies",
+      "condition": "vehicle.registeredOutsideFI AND accident.country = 'FI'",
+      "action": "apply FINNISH minimum standards",
+      "severity": "HIGH",
+      "legal_reference": "460/2016 13 §"
+    },
+    {
+      "category": "INSOLVENCY",
+      "rule_id": "ISO-001",
+      "name": "CentreCoversInsolvency",
+      "description": "Traffic Insurance Centre compensates if insurance company becomes insolvent",
+      "condition": "company.insolvent = true AND victim.resident = 'FI'",
+      "action": "centre.compensates",
+      "severity": "CRITICAL",
+      "legal_reference": "460/2016 91a §"
+    }
+  ],
+  "definitions": {
+    "vehicle": "Motor vehicle moving mechanically on land (not rails), speed >25km/h or weight >25kg, plus rented e-scooters and trailers",
+    "insurance_company": "Company licensed for insurance under directive 2009/103/EY",
+    "policyholder": "Person who made insurance contract",
+    "insured": "Person for whose benefit insurance is valid",
+    "traffic_accident": "Personal injury or property damage from vehicle use in traffic",
+    "EEA_state": "Country belonging to European Economic Area",
+    "third_country": "Country outside EEA"
+  },
+  "key_amounts": {
+    "property_damage_max": "€5,000,000",
+    "minimum_refund_threshold": "€8",
+    "premium_multiplier_max": "3.0",
+    "penalty_fee_max": "3x premium equivalent"
+  },
+  "amendments": [
+    {"number": "333/2018", "date": "2018-07-01"},
+    {"number": "983/2018", "date": "2018-11-23"},
+    {"number": "951/2019", "date": "2019-01-01"},
+    {"number": "960/2019", "date": "2020-01-01"},
+    {"number": "244/2020", "date": "2020-04-20"},
+    {"number": "92/2021", "date": "2021-03-01"},
+    {"number": "566/2022", "date": "2023-01-01"},
+    {"number": "794/2022", "date": "2023-01-01"},
+    {"number": "718/2023", "date": "2024-01-01"},
+    {"number": "218/2024", "date": "2024-06-01"},
+    {"number": "598/2024", "date": "2024-11-13"},
+    {"number": "955/2025", "date": "2025-01-01"},
+    {"number": "47/2026", "date": "2026-06-19"}
+  ]
+}
