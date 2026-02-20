@@ -1,4 +1,9 @@
 {
+  "metadata": {
+    "disclaimer": "These rules are APPROXIMATE - Finlex upgrade broke URLs. Values need verification.",
+    "source": "Liikennevakuutuslaki 279/2011 (currently inaccessible)",
+    "note": "All euro amounts and percentages are estimates based on typical EU/Finnish insurance patterns"
+  },
   "business_rules": [
     {
       "category": "MANDATORY_INSURANCE",

@@ -1,6 +1,14 @@
 # Car Insurance Business Rules
 # Based on Finnish Traffic Insurance Act (Liikennevakuutuslaki)
 
+> **⚠️ DISCLAIMER: These rules are APPROXIMATE and need verification against actual legislation.**
+> 
+> Finlex (finlex.fi) underwent a major upgrade and many URLs are returning 404 errors.
+> The rules below are based on typical Finnish/EU motor insurance law patterns and general knowledge
+> but the specific amounts, section numbers, and details should be verified.
+>
+> - Original law reference: Liikennevakuutuslaki 279/2011 (currently inaccessible)
+
 ## 1. MANDATORY INSURANCE RULES
 
 ### Rule 1.1: Mandatory Insurance Requirement
