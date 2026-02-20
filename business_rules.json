@@ -1,0 +1,339 @@
+{
+  "business_rules": [
+    {
+      "category": "MANDATORY_INSURANCE",
+      "rule_id": "INS-001",
+      "name": "MandatoryTrafficInsuranceRequired",
+      "description": "All vehicles registered in Finland must have mandatory traffic insurance",
+      "when": {
+        "vehicle.registrationRequired": true,
+        "vehicle.registeredIn": "FI"
+      },
+      "then": {
+        "require": {
+          "insurance.type": "MandatoryTrafficInsurance",
+          "insurance.active": true
+        }
+      },
+      "severity": "CRITICAL",
+      "legal_reference": "Liikennevakuutuslaki 2§"
+    },
+    {
+      "category": "PREMIUM_CALCULATION",
+      "rule_id": "PRE-002",
+      "name": "YoungDriverPremiumSurcharge",
+      "description": "Additional premium for young drivers under 25",
+      "when": {
+        "driver.age": {"$lt": 25},
+        "insurance.type": "Comprehensive"
+      },
+      "then": {
+        "apply_multiplier": {
+          "to": "premium",
+          "value": 1.5
+        }
+      },
+      "severity": "HIGH"
+    },
+    {
+      "category": "PREMIUM_CALCULATION",
+      "rule_id": "PRE-003",
+      "name": "DrivingExperienceDiscount",
+      "description": "Discount for experienced drivers with clean record",
+      "when": {
+        "driver.yearsOfExperience": {"$gte": 10},
+        "policy.claimFreeYears": {"$gte": 3}
+      },
+      "then": {
+        "apply_discount": {
+          "to": "premium",
+          "value": 0.80
+        }
+      },
+      "severity": "MEDIUM"
+    },
+    {
+      "category": "PREMIUM_CALCULATION",
+      "rule_id": "PRE-004",
+      "name": "NoClaimsBonus",
+      "description": "Progressive discount for claim-free years",
+      "when": {
+        "policy.claimFreeYears": "n"
+      },
+      "then": {
+        "apply_discount": {
+          "to": "premium",
+          "value_from_table": {
+            "1": 0.90,
+            "2": 0.85,
+            "3": 0.80,
+            "4": 0.75,
+            "5": "0.70"
+          }
+        }
+      },
+      "legal_reference": "Liikennevakuutuslaki 9§"
+    },
+    {
+      "category": "COVERAGE",
+      "rule_id": "COV-001",
+      "name": "ThirdPartyLiabilityCoverage",
+      "description": "Mandatory coverage limits for third party damages",
+      "when": {
+        "insurance.type": "MandatoryTrafficInsurance"
+      },
+      "then": {
+        "set_coverage_limits": {
+          "property_damage": 5000000,
+          "personal_injury": 10000000,
+          "currency": "EUR"
+        }
+      },
+      "legal_reference": "Liikennevakuutuslaki 12§"
+    },
+    {
+      "category": "DEDUCTIBLE",
+      "rule_id": "DED-001",
+      "name": "StandardDeductibleAmount",
+      "description": "Base deductible by insurance type",
+      "when": {
+        "insurance.type": "insuranceType"
+      },
+      "then": {
+        "set_deductible": {
+          "from_table": {
+            "MandatoryTrafficInsurance": 0,
+            "PartialComprehensive": 200,
+            "FullComprehensive": 150
+          }
+        }
+      },
+      "legal_reference": "Liikennevakuutuslaki 18§"
+    },
+    {
+      "category": "DEDUCTIBLE",
+      "rule_id": "DED-002",
+      "name": "YoungDriverDeductibleIncrease",
+      "description": "Increased deductible for young drivers",
+      "when": {
+        "driver.age": {"$lt": 25},
+        "insurance.type": "Comprehensive"
+      },
+      "then": {
+        "multiply_deductible": 1.5,
+        "minimum": 300
+      }
+    },
+    {
+      "category": "DEDUCTIBLE",
+      "rule_id": "DED-003",
+      "name": "DrunkenDrivingDeductible",
+      "description": "Maximum deductible when driving under influence",
+      "when": {
+        "driver.intoxicated": true
+      },
+      "then": {
+        "set_deductible": 2000,
+        "note": "Third party still fully covered"
+      },
+      "severity": "CRITICAL",
+      "legal_reference": "Liikennevakuutuslaki 19§"
+    },
+    {
+      "category": "CLAIMS",
+      "rule_id": "CLM-001",
+      "name": "ClaimFilingDeadline",
+      "description": "Claim must be filed within 30 days",
+      "when": {
+        "days_since_event": {"$gt": 30}
+      },
+      "then": {
+        "require_justification": true,
+        "grace_period_days": 30
+      },
+      "severity": "HIGH",
+      "legal_reference": "Liikennevakuutuslaki 32§"
+    },
+    {
+      "category": "CLAIMS",
+      "rule_id": "CLM-002",
+      "name": "ClaimInvestigationPeriod",
+      "description": "Must process claim within 30 days",
+      "when": {
+        "claim.status": "under_review"
+      },
+      "then": {
+        "set_deadline": {
+          "from": "claim.receivedDate",
+          "days": 30
+        },
+        "allow_extension": {
+          "to": 60,
+          "reason": "complex_case"
+        }
+      },
+      "legal_reference": "Liikennevakuutuslaki 33§"
+    },
+    {
+      "category": "COMPENSATION",
+      "rule_id": "CMP-001",
+      "name": "PropertyDamageCompensationLimit",
+      "description": "Maximum property damage compensation",
+      "when": {
+        "damage.type": "PropertyDamage"
+      },
+      "then": {
+        "set_maximum": {
+          "formula": "MIN(damage.actualCost, coverage.limit)"
+        }
+      },
+      "legal_reference": "Liikennevakuutuslaki 40§"
+    },
+    {
+      "category": "COMPENSATION",
+      "rule_id": "CMP-002",
+      "name": "TotalLossCompensation",
+      "description": "Market value compensation for total loss",
+      "when": {
+        "damage.severity": "TotalLoss",
+        "formula": "repairCost > vehicle.marketValue * 0.8"
+      },
+      "then": {
+        "set_compensation": {
+          "formula": "vehicle.marketValue - deductible"
+        }
+      },
+      "legal_reference": "Liikennevakuutuslaki 42§"
+    },
+    {
+      "category": "COMPENSATION",
+      "rule_id": "CMP-004",
+      "name": "VehicleDepreciation",
+      "description": "Apply depreciation to older vehicles",
+      "when": {
+        "vehicle.age": {"$gt": 5},
+        "damage.type": "PropertyDamage"
+      },
+      "then": {
+        "apply_depreciation": {
+          "formula": "vehicle.age * 0.10",
+          "maximum": 0.70
+        }
+      }
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-001",
+      "name": "ExclusionNoDrivingLicense",
+      "description": "No coverage for unlicensed driving",
+      "when": {
+        "driver.license.valid": false
+      },
+      "then": {
+        "deny_compensation": {
+          "for": "own_vehicle"
+        },
+        "note": "Third party coverage still applies"
+      },
+      "severity": "CRITICAL",
+      "legal_reference": "Liikennevakuutuslaki 55§"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-002",
+      "name": "ExclusionDrivingUnderInfluence",
+      "description": "Reduced coverage when intoxicated",
+      "when": {
+        "driver.intoxicated": true
+      },
+      "then": {
+        "reduce_compensation": {
+          "for": "own_vehicle",
+          "percentage": 50
+        },
+        "note": "Third party still fully covered"
+      },
+      "severity": "CRITICAL",
+      "legal_reference": "Liikennevakuutuslaki 56§"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-003",
+      "name": "ExclusionIntentionalDamage",
+      "description": "No coverage for intentional damage",
+      "when": {
+        "event.intentional": true
+      },
+      "then": {
+        "deny_compensation": "completely"
+      },
+      "severity": "CRITICAL",
+      "legal_reference": "Liikennevakuutuslaki 57§"
+    },
+    {
+      "category": "EXCLUSIONS",
+      "rule_id": "EXC-004",
+      "name": "ExclusionRacing",
+      "description": "No coverage during racing",
+      "when": {
+        "OR": [
+          {"vehicle.purpose": "racing"},
+          {"location.type": "racetrack"}
+        ]
+      },
+      "then": {
+        "deny_compensation": "completely"
+      },
+      "severity": "HIGH",
+      "legal_reference": "Liikennevakuutuslaki 58§"
+    },
+    {
+      "category": "OBLIGATIONS",
+      "rule_id": "OBL-001",
+      "name": "MinimumSettlementPeriod",
+      "description": "30 days to make offer",
+      "when": {
+        "claim.all_documents_received": true
+      },
+      "then": {
+        "set_deadline": {
+          "from": "receivedDate",
+          "days": 30
+        }
+      },
+      "severity": "HIGH",
+      "legal_reference": "Liikennevakuutuslaki 35§"
+    },
+    {
+      "category": "RENEWAL",
+      "rule_id": "REN-001",
+      "name": "PolicyRenewalNotice",
+      "description": "30 days notice before expiry",
+      "when": {
+        "days_until_expiry": {"$lte": 30}
+      },
+      "then": {
+        "send_notice": {
+          "to": "policyHolder",
+          "content": "renewal_offer"
+        }
+      }
+    },
+    {
+      "category": "DISPUTES",
+      "rule_id": "DIS-001",
+      "name": "ClaimAppealProcess",
+      "description": "Right to appeal denied claims",
+      "when": {
+        "claim.status": "rejected"
+      },
+      "then": {
+        "inform": {
+          "about": "appeal_rights",
+          "deadline_days": 30
+        }
+      },
+      "escalation": "InsuranceCourt"
+    }
+  ]
+}
